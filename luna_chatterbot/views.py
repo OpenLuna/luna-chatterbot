@@ -52,12 +52,12 @@ def get_response(fb_id, text):
 	ntext, isQuestion = normalize_sentence(text)
 	if learn:
 		if ChatHistory.objects.all() and list(ChatHistory.objects.all().order_by("id"))[-1].text == None:
-			print "Sharni " + text.decode("utf-8") + "za response od prejsnega"
+			#print "Sharni " + text.decode("utf-8") + "za response od prejsnega"
 			req = list(ChatHistory.objects.all().order_by("id"))[-2]
-			pair = {"request":req.text, "response": text.decode("utf-8"), "question": req.isQuestion}
+			pair = {"request":req.text, "response": text, "question": req.isQuestion}
 			db.bot.insert_one(pair)
-			ChatHistory(fb_id=str(fb_id), text=text.decode("utf-8"), request=False).save()
-			return "Zapolnil sem si tvoj predlog. Nadaljuj s pogovorm."
+			ChatHistory(fb_id=str(fb_id), text=text, request=False).save()
+			return "Zapomnil sem si tvoj predlog. Nadaljuj s pogovorm."
 		else:
 			ChatHistory(fb_id=str(fb_id), text=" ".join(ntext), request=True, isQuestion=isQuestion).save()
 	if " ".join(ntext) in keys:
