@@ -52,7 +52,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'lasko_bot.urls'
+ROOT_URLCONF = 'luna_bot.urls'
 
 TEMPLATES = [
     {
@@ -70,7 +70,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'lasko_bot.wsgi.application'
+WSGI_APPLICATION = 'luna_bot.wsgi.application'
 
 
 # Database
