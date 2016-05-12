@@ -51,8 +51,11 @@ def get_response(fb_id, text):
 
 	ntext, isQuestion = normalize_sentence(text)
 	if learn:
-		if ChatHistory.objects.all() and list(ChatHistory.objects.all().order_by("id"))[-1].text == None:
+		if ChatHistory.objects.filter(fb_id=str(fb_id)) and list(ChatHistory.objects.filter(fb_id=str(fb_id)).order_by("id"))[-1].text == None:
 			#print "Sharni " + text.decode("utf-8") + "za response od prejsnega"
+			if ntext[0] == "x":
+				ChatHistory(fb_id=str(fb_id), text="x", request=False).save()
+				return "Če mi nočeš pomagat pa nič :("
 			req = list(ChatHistory.objects.all().order_by("id"))[-2]
 			pair = {"request":req.text, "response": text, "question": req.isQuestion}
 			db.bot.insert_one(pair)
