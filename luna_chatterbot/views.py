@@ -61,6 +61,15 @@ def get_response(fb_id, text):
 			db.bot.insert_one(pair)
 			ChatHistory(fb_id=str(fb_id), text=text, request=False).save()
 			return "Zapomnil sem si tvoj predlog. Nadaljuj s pogovorm."
+		elif text.lower()[:7] == "narobe:":
+			text = text[8:]
+			request_obj = list(ChatHistory.objects.filter(fb_id=str(fb_id), request=True).order_by("id"))[-1]
+			print request_obj.text
+			db_obj = db.bot.find_one({'request': request_obj.text})
+			print db_obj
+			pair = {"request":request_obj.text, "response": text, "question": request_obj.isQuestion}
+			db.bot.replace_one(db_obj, pair)
+			return "Hvala da me poravljaš ;) s tabo bom postal močnejši"
 		else:
 			ChatHistory(fb_id=str(fb_id), text=" ".join(ntext), request=True, isQuestion=isQuestion).save()
 	if " ".join(ntext) in keys:
