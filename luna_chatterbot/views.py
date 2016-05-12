@@ -69,7 +69,7 @@ def get_response(fb_id, text):
 			print db_obj
 			pair = {"request":request_obj.text, "response": text, "question": request_obj.isQuestion}
 			db.bot.replace_one(db_obj, pair)
-			return "Hvala da me poravljaš ;) s tabo bom postal močnejši"
+			return "Hvala, da me poravljaš ;) s tabo bom postal močnejši"
 		else:
 			ChatHistory(fb_id=str(fb_id), text=" ".join(ntext), request=True, isQuestion=isQuestion).save()
 	if " ".join(ntext) in keys:
