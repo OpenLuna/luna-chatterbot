@@ -35,11 +35,13 @@ class Botw(generic.View):
                 # Check to make sure the received call is a message call
                 # This might be delivery, optin, postback for other events 
                 if 'message' in message.keys():
-                    # Print the message to the terminal
+                    if not  "text" in message['message'].keys():
+                        post_facebook_message(message['sender']['id'], "Ne razumem tvoje govorice :D")
+                        return HttpResponse()
                     print(message)
-                    parseMessage(message)
+                    parseMessage(message['message']['text'], message['sender']['id'])
                 elif 'postback' in message.keys():
-                    parseMessage(message)
+                    parseMessage(message['postback']['payload'], message['sender']['id'])
         return HttpResponse()
 
 
@@ -58,32 +60,26 @@ def sendMessageToFeed(request, feed_name, message):
     
 
 # what to do with message? Save/Get Person...
-def parseMessage(message):
+def parseMessage(message, sender):
     print("parse")
-    person = Person.objects.filter(fb_id=message['sender']['id'])
+    person = Person.objects.filter(fb_id=sender)
     if person:
         person = person[0]
     else:
-        person = Person(fb_id=message['sender']['id'])
+        person = Person(fb_id=sender)
         person.save()
-    if "postback" in message.keys():
-        response = get_response(message['sender']['id'], message['postback']['payload'])
-        post_facebook_message(message['sender']['id'], response)
-        return
-    if not  "text" in message['message'].keys():
-        post_facebook_message(message['sender']['id'], "Ne razumem tvoje govorice :D")
-        return
-    if message['message']['text'][0] == "@":
+
+    if message[0] == "@":
         feed_register(person, message)
-    elif message['message']['text'][0] == "#":
+    elif message[0] == "#":
         feed_unregister(person, message)
     else:
         print "parse else"
-        if FbCard.objects.filter(keyword=message['message']['text']):
-            send_facebook_message_card(list(FbCard.objects.filter(keyword=message['message']['text'])), message['sender']['id'])
+        if FbCard.objects.filter(keyword=message):
+            send_facebook_message_card(list(FbCard.objects.filter(keyword=message)), sender)
         else:
-            response = get_response(message['sender']['id'], message['message']['text'])
-            post_facebook_message(message['sender']['id'], response) 
+            response = get_response(sender, message)
+            post_facebook_message(sender, response) 
 
 
 #register on feed
