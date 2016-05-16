@@ -38,6 +38,8 @@ class Botw(generic.View):
                     # Print the message to the terminal
                     print(message)
                     parseMessage(message)
+                elif 'postback' in message.keys():
+                    parseMessage(message)
         return HttpResponse()
 
 
@@ -64,6 +66,10 @@ def parseMessage(message):
     else:
         person = Person(fb_id=message['sender']['id'])
         person.save()
+    if "postback" in message.keys():
+        response = get_response(message['sender']['id'], message['postback']['payload'])
+        post_facebook_message(message['sender']['id'], response)
+        return
     if not  "text" in message['message'].keys():
         post_facebook_message(message['sender']['id'], "Ne razumem tvoje govorice :D")
         return

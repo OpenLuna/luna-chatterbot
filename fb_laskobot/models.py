@@ -56,7 +56,7 @@ class FbCard(models.Model):
 	title = models.CharField(max_length=128, blank=True, null=True)
 	subtitle = models.CharField(max_length=128, blank=True, null=True)
 	image = models.URLField(max_length=128, blank=True, null=True)
-	buttons = models.ManyToManyField(FbButton)
+	buttons = models.ManyToManyField(FbButton, blank=True)
 
 	keyword = models.CharField(max_length=128, blank=True, null=True)
 
