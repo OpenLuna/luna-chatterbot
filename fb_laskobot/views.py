@@ -6,9 +6,10 @@ from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 import json, requests, random, re
 from django.views import generic
-from .models import Person, Feed, Events
+from .models import Person, Feed, Events, FbCard
 from datetime import datetime
 from luna_chatterbot.views import get_response
+from django.conf import settings
 
 
 class Botw(generic.View):
@@ -70,8 +71,11 @@ def parseMessage(message):
         feed_unregister(person, message)
     else:
         print "parse else"
-        response = get_response(message['sender']['id'], message['message']['text'])
-        post_facebook_message(message['sender']['id'], response) 
+        if FbCard.objects.filter(keyword=message['message']['text']):
+            send_facebook_message_card(list(FbCard.objects.filter(keyword=message['message']['text'])), message['sender']['id'])
+        else:
+            response = get_response(message['sender']['id'], message['message']['text'])
+            post_facebook_message(message['sender']['id'], response) 
 
 
 #register on feed
@@ -113,7 +117,7 @@ def feed_unregister(person, message):
 # send message to fb user
 def post_facebook_message(fbid, recevied_message):
     print( "post")
-    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAICJSgf5D0BAJYadXJKkjvTrUSB6WKsCtfZAFdflBtW3uK4XFhPaP8vHxXIZBxd6ZBaKNnAGeZA9ZCFqFZBdlsGjmWRNHfZAZBps8zOQZCed1B4cuHaX4osCu6qqnIM5XHkVZCW1Qcl7HWx8iTDZCQTbYXKuutUBytfjKED77kZAAVo1gZDZD' 
+    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token='+settings.FACEBOOK_SECRET
     response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":recevied_message}})
     requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
 
@@ -133,3 +137,63 @@ def sendToFeed(feed, message):
         post_facebook_message(person.fb_id, message)
         count+=1
     return count
+
+def test_send_buttons():
+    buttons = [{
+                "type":"web_url",
+                "url":"http://www.lasko.eu/en/",
+                "title":"Glej naš pejđ"
+              },
+              {
+                "type":"postback",
+                "title":"Naroči pivo",
+                "payload":"Narocu bi pivo."
+              },
+              {
+                "type":"postback",
+                "title":"Zavriskaj",
+                "payload":"vriskam"
+              }]
+    """send_facebook_message_card("JoJo kake joške", [{
+                               "type":"postback",
+                               "title":"Primo jo za joško",
+                               "payload":"slati"}], 1088696307862513)"""
+    send_facebook_message_buttons("Ka boš pil pir al kwa?", buttons, 1088696307862513)
+    send_facebook_message_card(list(FbCard.objects.all()[:2]),1088696307862513)
+
+
+def send_facebook_message_buttons(text, buttons, fbid):
+    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token='+settings.FACEBOOK_SECRET
+    response_msg = json.dumps({"recipient":{"id":fbid}, 
+                                "message":{
+                                "attachment":{
+                                  "type":"template",
+                                  "payload":{
+                                    "template_type":"button",
+                                    "image_url": "http://img2.timeinc.net/people/i/2015/news/150831/pamela-anderson-01-660.jpg",
+                                    "text":text,
+                                    "buttons":[button for button in buttons]
+                                  }
+                                }
+                              }})
+    print response_msg
+    requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+
+def send_facebook_message_card(cards, fbid):
+    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token='+settings.FACEBOOK_SECRET
+    response_msg = json.dumps({"recipient":{"id":fbid}, 
+                                "message":{
+                                "attachment":{
+                                  "type":"template",
+                                  "payload":{
+                                    "template_type":"generic",
+                                    "elements":[card.getDictionary() for card in cards],
+                                  }
+                                }
+                              }})
+    print response_msg
+    requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+
+
+
+#    image = "http://img2.timeinc.net/people/i/2015/news/150831/pamela-anderson-01-660.jpg"
