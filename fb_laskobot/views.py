@@ -64,7 +64,9 @@ def parseMessage(message):
     else:
         person = Person(fb_id=message['sender']['id'])
         person.save()
-
+    if not  "text" in message['message'].keys():
+        post_facebook_message(message['sender']['id'], "Ne razumem tvoje govorice :D")
+        return
     if message['message']['text'][0] == "@":
         feed_register(person, message)
     elif message['message']['text'][0] == "#":
